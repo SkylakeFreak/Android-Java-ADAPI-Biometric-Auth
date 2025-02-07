@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     private BiometricPrompt biometricPrompt;
     private BiometricPrompt.PromptInfo promptInfo;
 
+    private String socketiocode;
+
     private String orgName;
     private String adminName;
     private String deviceid;
@@ -53,9 +55,6 @@ public class MainActivity extends AppCompatActivity {
 
     private String databasestoresendstring;
 
-
-
-    // QR Code scanning launcher, now using ScanOptions
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(
             new ScanContract(), this::handleQRCodeResult);
 
@@ -63,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        String email = "user@example.com"; // Replace with actual email from sign-up form
+        String email = "user@example.com";
         ImageView gifImageView = findViewById(R.id.windowsLogo);
         Glide.with(this).asGif().load(R.drawable.encryption).into(gifImageView);
         Button btnClearPreferences = findViewById(R.id.btnClearPreferences);
@@ -74,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                clearSharedPreferences(); // Call the method when clicked
+                clearSharedPreferences();
                 clearKeyStore();
             }
 
@@ -89,9 +88,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
-        // Initialize biometric authentication
-
     }
 
     private void initializeBiometricPrompt() {
@@ -102,8 +98,6 @@ public class MainActivity extends AppCompatActivity {
             public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
                 Toast.makeText(MainActivity.this, "Authentication succeeded!", Toast.LENGTH_SHORT).show();
-
-                // After successful fingerprint authentication, start QR code scanning
                 startQRCodeScan();
             }
 
@@ -119,8 +113,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Authentication error: " + errString, Toast.LENGTH_SHORT).show();
             }
         });
-
-        // Set up the prompt dialog for fingerprint authentication
         promptInfo = new BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Biometric Authentication")
                 .setSubtitle("Use your fingerprint to authenticate")
@@ -132,10 +124,9 @@ public class MainActivity extends AppCompatActivity {
         biometricPrompt.authenticate(promptInfo);
     }
 
-    // Start QR code scanning using ScanOptions
     private void startQRCodeScan() {
         ScanOptions options = new ScanOptions();
-        options.setOrientationLocked(true); // Optional: Lock the orientation
+        options.setOrientationLocked(true);
         barcodeLauncher.launch(options);
     }
 
@@ -143,9 +134,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
             keyStore.load(null);
-
-            // The alias should match the name you used while storing the key
-            String keyAlias = "emailKey";  // Replace with your key alias
+            String keyAlias = "emailKey";
 
             if (keyStore.containsAlias(keyAlias)) {
                 keyStore.deleteEntry(keyAlias);
@@ -158,16 +147,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Handle QR code scan result
     private void handleQRCodeResult(ScanIntentResult result) {
         if (result.getContents() != null) {
-            // Extract the email ID from the scanned QR code
             String scannedEmail = result.getContents();
             Toast.makeText(MainActivity.this, "string" + scannedEmail, Toast.LENGTH_LONG).show();
             String[] parts = scannedEmail.split("\\+");
             orgName = parts[0]; // First part
             adminName = parts[1]; // Second part
             String signin = parts[2]; // Third part
+            socketiocode=parts[3];
+            Log.d("ActivityCheck", socketiocode);
 
             if (signin.equals("signup")) {
                 Toast.makeText(MainActivity.this, "Signup MODE", Toast.LENGTH_LONG).show();
@@ -181,9 +170,9 @@ public class MainActivity extends AppCompatActivity {
                     else {
 
 
-                        generateKey(); // Generate key (only the first time during signup)
-                        hashedEmail = hashEmailWithKeystore(adminName); // Store the hashed email
-                        storeHashedEmailInSharedPreferences(hashedEmail); // Store hashed email in SharedPreferences
+                        generateKey();
+                        hashedEmail = hashEmailWithKeystore(adminName);
+                        storeHashedEmailInSharedPreferences(hashedEmail);
                         Toast.makeText(this, "Email hashed and stored", Toast.LENGTH_SHORT).show();
                         Toast.makeText(this, "Keystore value: " + adminName + " " + hashedEmail, Toast.LENGTH_SHORT).show();
                         Log.d("ActivityCheck", "handleqrcoderesult called the sendauthtobackendfunction");
@@ -207,23 +196,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            // Get the device's unique ID (ANDROID_ID is used here)
             deviceid="temporary";
 
-            // Get the fingerprint authentication status (this is done upon success)
-            isFingerprintAuthenticated = true;  // since it's already authenticated
-
-            // Combine scanned email with deviceId and fingerprint status
+            isFingerprintAuthenticated = true;
 
 
-
-            // Print the authentication token (for debugging)
             Log.d("AuthToken", "Authentication Token: " + authToken);
 
-            // Optionally, display it to the user
             Toast.makeText(MainActivity.this, "Auth Token: " + authToken, Toast.LENGTH_LONG).show();
-
-            // Send this data to your backend for verification or further processing
 
         }
     }
@@ -241,7 +221,6 @@ public class MainActivity extends AppCompatActivity {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
 
-        // Create the key if it doesn't exist
         if (!keyStore.containsAlias("emailKey")) {
             KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_HMAC_SHA256, "AndroidKeyStore");
             keyGenerator.init(new KeyGenParameterSpec.Builder("emailKey", KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
@@ -263,7 +242,6 @@ public class MainActivity extends AppCompatActivity {
         byte[] emailBytes = email.getBytes(StandardCharsets.UTF_8);
         byte[] hashedBytes = mac.doFinal(emailBytes);
 
-        // Return the Base64-encoded hashed email string without padding
         return Base64.encodeToString(hashedBytes, Base64.NO_PADDING);
     }
 
@@ -279,7 +257,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // Store the hashed email in SharedPreferences
     private void storeHashedEmailInSharedPreferences(String hashedEmail) {
         Log.d("HashedEmail", "Saving hashed email: " + hashedEmail);  // Log for saved email
         SharedPreferences sharedPreferences = getSharedPreferences("userPrefs", MODE_PRIVATE);
@@ -287,8 +264,6 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("hashedEmail", hashedEmail);
         editor.apply();
     }
-
-    // Retrieve the hashed email from SharedPreferences
     private String getHashedEmailFromSharedPreferences() {
         SharedPreferences sharedPreferences = getSharedPreferences("userPrefs", MODE_PRIVATE);
 
@@ -301,39 +276,32 @@ public class MainActivity extends AppCompatActivity {
         return storedHashedEmail;
     }
 
-    // Example of sending the auth token to the backend using HTTP POST
-
 
     private void sendAuthTokenToBackend1() {
         Log.d("ActivityCheck", "startofauthtokentobackend");
         new Thread(() -> {
             Log.d("ActivityCheck", "new thread started");
             try {
-                // Show Toast for the authToken being sent on the main thread
                 runOnUiThread(() -> Log.d("ActivityCheck", authToken));
 
-                // Backend URL with query parameters
                 URL url = new URL("https://ad-api-backend.vercel.app/userenrollment?safetystring="
                         + hashedEmail.trim() + "&orgName=" + orgName
                         + "&deviceid=" + deviceid
                         + "&isFingerprintauthenticated=" + isFingerprintAuthenticated
-                        + "&adminname=" + adminName);
+                        + "&adminname=" + adminName
+                        + "&socketiocode"+socketiocode
+                );
 
                 runOnUiThread(() -> Log.d("ActivityCheck", url.toString()));
 
-                // Create a connection
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("POST");
-                urlConnection.setDoInput(true); // Read input stream
-
-                // Show Toast for connection status on the main thread
+                urlConnection.setDoInput(true);
                 runOnUiThread(() -> Log.d("ActivityCheck", "Conenction Established Sending Request"));
 
-                // Get the response code
                 int responseCode = urlConnection.getResponseCode();
                 runOnUiThread(() -> Log.d("ActivityCheck", "responsecode"+responseCode));
 
-                // Handle the response
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
                     StringBuilder response = new StringBuilder();
@@ -359,31 +327,26 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             Log.d("ActivityCheck", "new thread started");
             try {
-                // Show Toast for the authToken being sent on the main thread
                 runOnUiThread(() -> Log.d("ActivityCheck", authToken));
 
-                // Backend URL with query parameters
                 URL url = new URL("https://ad-api-backend.vercel.app/userverification?safetystring="
                         + hashedEmail + "&orgName=" + orgName
                         + "&deviceid=" + deviceid
                         + "&isFingerprintauthenticated=" + isFingerprintAuthenticated
-                        + "&adminname=" + adminName);
+                        + "&adminname=" + adminName
+                        + "&socketiocode="+socketiocode
+                );
 
                 runOnUiThread(() -> Log.d("ActivityCheck", url.toString()));
-
-                // Create a connection
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("POST");
-                urlConnection.setDoInput(true); // Read input stream
+                urlConnection.setDoInput(true);
 
-                // Show Toast for connection status on the main thread
                 runOnUiThread(() -> Log.d("ActivityCheck", "Conenction Established Sending Request"));
 
-                // Get the response code
                 int responseCode = urlConnection.getResponseCode();
                 runOnUiThread(() -> Log.d("ActivityCheck", "responsecode"+responseCode));
 
-                // Handle the response
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
                     StringBuilder response = new StringBuilder();
