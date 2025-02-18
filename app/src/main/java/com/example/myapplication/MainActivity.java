@@ -157,6 +157,8 @@ public class MainActivity extends AppCompatActivity {
             String signin = parts[2]; // Third part
             socketiocode=parts[3];
             Log.d("ActivityCheck", socketiocode);
+            Toast.makeText(MainActivity.this, socketiocode+"socketiocode", Toast.LENGTH_LONG).show();
+
 
             if (signin.equals("signup")) {
                 Toast.makeText(MainActivity.this, "Signup MODE", Toast.LENGTH_LONG).show();
@@ -272,7 +274,6 @@ public class MainActivity extends AppCompatActivity {
         hashedEmail=storedHashedEmail.trim();
         deviceid="temporary";
         Log.d("HashedEmail", "Retrieved stored hashed email: " + storedHashedEmail);
-        // Log for stored email
         return storedHashedEmail;
     }
 
@@ -289,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
                         + "&deviceid=" + deviceid
                         + "&isFingerprintauthenticated=" + isFingerprintAuthenticated
                         + "&adminname=" + adminName
-                        + "&socketiocode"+socketiocode
+                        + "&socketiocode="+socketiocode
                 );
 
                 runOnUiThread(() -> Log.d("ActivityCheck", url.toString()));
