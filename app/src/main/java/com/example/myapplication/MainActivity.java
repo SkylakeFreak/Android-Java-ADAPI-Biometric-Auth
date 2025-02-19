@@ -183,7 +183,26 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            } else {
+            } else if (signin.equals("logout")) {
+                Log.d("ActivityCheck", "Entered in to the logout section ");
+
+
+                try {
+                    if (verifyEmail(adminName)) {
+                        Log.d("ActivityCheck", "email verified we can logout the user such called the method");
+                        sendAuthTokenToBackend3();
+
+                        Toast.makeText(this, "successfully made request for logut!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Failed to send request to backedn for logout", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+            else{
                 Toast.makeText(this, "Signin MODE", Toast.LENGTH_LONG).show();
                 try {
                     if (verifyEmail(adminName)) {
@@ -347,6 +366,56 @@ public class MainActivity extends AppCompatActivity {
 
                 int responseCode = urlConnection.getResponseCode();
                 runOnUiThread(() -> Log.d("ActivityCheck", "responsecode"+responseCode));
+
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+                    runOnUiThread(() -> Log.d("ActivityCheck", "Response message from backend"+response.toString()));
+                } else {
+                    runOnUiThread(() -> Log.d("ActivityCheck", "Error sending authtoken to backend"+responseCode));
+                }
+
+                urlConnection.disconnect();
+                runOnUiThread(() -> Toast.makeText(this, "connection closed", Toast.LENGTH_SHORT).show());
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Error sending auth token: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+    }
+
+
+
+
+
+    private void sendAuthTokenToBackend3() {
+        Log.d("ActivityCheck", "entry point of logout to backend code");
+        new Thread(() -> {
+            Log.d("ActivityCheck", "new thread started");
+            try {
+                runOnUiThread(() -> Log.d("ActivityCheck", authToken));
+
+                URL url = new URL("https://ad-api-backend.vercel.app/logoutprocessandroid?safetystring="
+                        + hashedEmail + "&orgName=" + orgName
+                        + "&deviceid=" + deviceid
+                        + "&isFingerprintauthenticated=" + isFingerprintAuthenticated
+                        + "&adminname=" + adminName
+                        + "&socketiocode="+socketiocode
+                );
+
+                runOnUiThread(() -> Log.d("ActivityCheck", url.toString()));
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("POST");
+                urlConnection.setDoInput(true);
+
+                runOnUiThread(() -> Log.d("ActivityCheck", "Conenction Established Sending Request logout"));
+
+                int responseCode = urlConnection.getResponseCode();
+                runOnUiThread(() -> Log.d("ActivityCheck", "responsecode logout"+responseCode));
 
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
