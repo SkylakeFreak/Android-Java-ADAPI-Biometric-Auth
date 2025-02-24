@@ -49,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
     private String adminName;
     private String deviceid;
     private boolean isFingerprintAuthenticated;
-    private String usermode;
 
     private String authToken="data";
 
@@ -157,7 +156,6 @@ public class MainActivity extends AppCompatActivity {
             adminName = parts[1]; // Second part
             String signin = parts[2]; // Third part
             socketiocode=parts[3];
-            Usermode=parts[4];
             Log.d("ActivityCheck", socketiocode);
             Toast.makeText(MainActivity.this, socketiocode+"socketiocode", Toast.LENGTH_LONG).show();
 
@@ -312,8 +310,6 @@ public class MainActivity extends AppCompatActivity {
                         + "&isFingerprintauthenticated=" + isFingerprintAuthenticated
                         + "&adminname=" + adminName
                         + "&socketiocode="+socketiocode
-                        + "&usermode="+usermode
-
                 );
 
                 runOnUiThread(() -> Log.d("ActivityCheck", url.toString()));
