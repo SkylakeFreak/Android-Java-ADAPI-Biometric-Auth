@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private String adminName;
     private String deviceid;
     private boolean isFingerprintAuthenticated;
+    private String modeoflogin;
 
     private String authToken="data";
 
@@ -156,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
             adminName = parts[1]; // Second part
             String signin = parts[2]; // Third part
             socketiocode=parts[3];
+            modeoflogin=parts[4];
             Log.d("ActivityCheck", socketiocode);
             Toast.makeText(MainActivity.this, socketiocode+"socketiocode", Toast.LENGTH_LONG).show();
 
@@ -251,6 +253,8 @@ public class MainActivity extends AppCompatActivity {
             keyGenerator.generateKey();
         }
     }
+    // Master Admin, Manager, User
+
 
     public String hashEmailWithKeystore(String email) throws Exception {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -310,6 +314,8 @@ public class MainActivity extends AppCompatActivity {
                         + "&isFingerprintauthenticated=" + isFingerprintAuthenticated
                         + "&adminname=" + adminName
                         + "&socketiocode="+socketiocode
+                        + "&modeoflogin="+modeoflogin
+
                 );
 
                 runOnUiThread(() -> Log.d("ActivityCheck", url.toString()));
@@ -355,6 +361,7 @@ public class MainActivity extends AppCompatActivity {
                         + "&isFingerprintauthenticated=" + isFingerprintAuthenticated
                         + "&adminname=" + adminName
                         + "&socketiocode="+socketiocode
+                        + "&modeoflogin="+modeoflogin
                 );
 
                 runOnUiThread(() -> Log.d("ActivityCheck", url.toString()));
@@ -405,6 +412,7 @@ public class MainActivity extends AppCompatActivity {
                         + "&isFingerprintauthenticated=" + isFingerprintAuthenticated
                         + "&adminname=" + adminName
                         + "&socketiocode="+socketiocode
+                        + "&modeoflogin="+modeoflogin
                 );
 
                 runOnUiThread(() -> Log.d("ActivityCheck", url.toString()));
